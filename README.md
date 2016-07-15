@@ -40,3 +40,7 @@ myConstructor
   .wait(myPromise)
   .someOtherMethod();
 ```
+
+## License
+
+[WTFPL](https://en.wikipedia.org/wiki/WTFPL)
