@@ -16,6 +16,7 @@ Will wait until either the time or a promise has run
 
 - `method.wait([ Promise ]);`
 - `method.wait([ Promise ], [ function ]);`
+- `method.wait([ function ], [ Promise ]);`
 
 ## `push`
 
