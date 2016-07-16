@@ -199,6 +199,20 @@
     };
   }
 
+  function clear(self) {
+    return function () {
+      self = {
+        _queue_ : [],
+        _wait_ : false,
+        _index_ : 0
+      };
+
+      self._mirror_.length = 0;
+
+      return self._mirror_;
+    }; 
+  }
+
   function queue(instance) {
     var prototype = instance.constructor.prototype;
     
@@ -232,17 +246,7 @@
 
     Mirror.prototype.wait = enqueue(self, instance, 'wait');
     Mirror.prototype.push = enqueue(self, instance, 'push');
-    Mirror.prototype.clear = function () {
-      self = {
-        _queue_ : [],
-        _wait_ : false,
-        _index_ : 0
-      };
-
-      self._mirror_.length = 0;
-
-      return self._mirror_;
-    };
+    Mirror.prototype.clear = clear(self);
 
     return self._mirror_;
   }
