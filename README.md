@@ -20,9 +20,20 @@ Will wait until either the time or a promise has run
 
 ## `push`
 
-Push any `function` into the queue, if your `function` returns a `Promise`, it will behave like `wait` in that it won't trigger the next method till the promise resolves
+- Accepts a function
+- Accepts an object with with an `accept` method
+
+### function
+
+Push a `function` into the queue, if your `function` returns a `Promise`, it will behave like `wait` in that it won't trigger the next method till the promise resolves
 
 `method.push([function]);`
+
+### `accept` object
+
+Push an object with an accept method into the queue. if your `accept` method returns a `Promise`, it will behave like `wait` in that it won't trigger the next method till the promise resolves
+
+`method.push([Object])`
 
 ## `clear`
 
