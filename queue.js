@@ -19,24 +19,24 @@
       function () {
         func();
         step(self);
-      }, 
+      },
       time
     );
   }
 
   function waitFunction(func, self) {
     var res = func();
-    // Check for promise like methods on the returned value          
+    // Check for promise like methods on the returned value
     self._wait_ = true;
     if (res && typeof res.then === 'function') {
-       res.then(function res_then() { 
+       res.then(function res_then() {
          step(self);
        });
        if (typeof res.catch === 'function') {
          res.catch(function res_catch() {
            step(self);
          });
-       } 
+       }
     } else if (res && typeof res.complete === 'function') {
        res.complete(function res_complete() {
          step(self);
@@ -50,13 +50,20 @@
     var element = self._queue_[self._index_];
     if (typeof element.arguments[0] === 'function') {
       waitFunction(element.arguments[0], self);
+    } else if (
+      element.arguments[0]
+      && typeof element.arguments[0].accept === 'function'
+    ) {
+      waitFunction(function () {
+        element.arguments[0].accept();
+      }, self);
     }
   }
 
   function wait(self) {
     var element = self._queue_[self._index_];
     var n = element.arguments.length;
-    
+
     self._wait_ = true;
 
     switch (n) {
@@ -75,23 +82,23 @@
           && typeof element.arguments[0].complete === 'function'
         ) {
           element.arguments[0].complete(function () {
-            step(self); 
-          }); 
+            step(self);
+          });
         } else if (typeof element.arguments[0] === 'number') {
-          setTimeout(function () { 
-            step(self); 
+          setTimeout(function () {
+            step(self);
           }, element.arguments[0]);
         } else {
           throw 'Invalid arguments, \'wait\' expects the argument to be a number, or Promise like';
         }
 
         return;
-      }  
+      }
 
       case 2: {
         if (
           typeof element.arguments[0] === 'number'
-          && typeof element.arguments[1] === 'function'  
+          && typeof element.arguments[1] === 'function'
         ) {
           waitTimeout(element.arguments[0], element.arguments[1], self);
         } else if (
@@ -124,8 +131,8 @@
     var result;
     var element = self._queue_[self._index_];
 
-    var method = element 
-      ? element.method 
+    var method = element
+      ? element.method
       : undefined;
 
     var instance = element
@@ -210,12 +217,12 @@
       self._mirror_.length = 0;
 
       return self._mirror_;
-    }; 
+    };
   }
 
   function queue(instance) {
     var prototype = instance.constructor.prototype;
-    
+
     var Mirror = function () {
       this.length = 0;
     };
@@ -238,7 +245,7 @@
           && method !== 'arguments'
           && method !== 'length'
           && method !== 'caller'
-          && typeof prototype[method] === 'function' 
+          && typeof prototype[method] === 'function'
         ) {
           Mirror.prototype[method] = enqueue(self, instance, method);
         }
