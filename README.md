@@ -1,58 +1,38 @@
-# QUEUE
+# Queue 1.5.0
+#### License: [MIT](https://opensource.org/licenses/MIT)
 
-Queue is a function which you wrap around an object to add 3 methods:
+#### 🐛 No unit tests
 
-- `wait`
-- `push`
-- `clear`
+## Table of Contents
 
-## `wait`
+#### Overview
 
-Will wait until either the time or a promise has run
+- [Description](#description-md-top-top)
+- [Example](#example-md-top-top)
+- [Installation](#installation-md-top-top)
+- [Notes](#notes-md-top-top)
 
-- `method.wait([ miliseconds ]);`
-- `method.wait([ miliseconds ], [ function ]);`
-- `method.wait([ function ], [ miliseconds ]);`
+## Description ([top](#table-of-contents))
 
-- `method.wait([ Promise ]);`
-- `method.wait([ Promise ], [ function ]);`
-- `method.wait([ function ], [ Promise ]);`
+<!--
+  Describe to the world what you toiled over. You magnificent being.
+  (The title 'Is going to be generated')
+-->
+## Example ([top](#table-of-contents))
 
-## `push`
 
-- Accepts a function
-- Accepts an object with with an `accept` method
+<!--
+  An brief example which showcases your plugin
+-->
+## Installation ([top](#table-of-contents))
 
-### function
 
-Push a `function` into the queue, if your `function` returns a `Promise`, it will behave like `wait` in that it won't trigger the next method till the promise resolves
+<!--
+  Installation instructions
+-->
+## Notes ([top](#table-of-contents))
 
-`method.push([function]);`
 
-### `accept` object
-
-Push an object with an accept method into the queue. if your `accept` method returns a `Promise`, it will behave like `wait` in that it won't trigger the next method till the promise resolves
-
-`method.push([Object])`
-
-## `clear`
-
-Removes everything in the queue.
-
-`method.clear();`
-
-## Example
-
-```javascript
-var myConstructor = queue(new Constructor());
-
-myConstructor
-  .wait(100)
-  .someMethod()
-  .wait(myPromise)
-  .someOtherMethod();
-```
-
-## License
-
-[WTFPL](https://en.wikipedia.org/wiki/WTFPL)
+<!--
+  Anything 'notable' that the user should know
+-->

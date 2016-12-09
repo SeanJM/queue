@@ -1,0 +1,39 @@
+{
+  "name": "Queue",
+  "version": "1.5.0",
+  "license": "MIT",
+  "author": "Sean MacIsaac <seanjmacisaac@gmail.com> (http://twitter.com/seanjmacisaac)",
+  "gruntBuild": {
+    "isBundle": true,
+    "isProduction": false,
+    "sourceMap": true,
+    "isSite": false,
+    "useClosure": true,
+    "bundle": "bundle"
+  },
+  "main": "bin/bundle.min.js",
+  "scripts": {
+    "test": "test/index.js"
+  },
+  "dependencies": {
+    "colors": "^1.1.2",
+    "dotenv": "^2.0.0",
+    "grunt": "^0.4.5",
+    "grunt-autoprefixer": "^1.0.1",
+    "grunt-cli": "^0.1.13",
+    "grunt-concat-sourcemap": "^0.4.3",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-copy": "^0.8.2",
+    "grunt-contrib-cssmin": "^0.10.0",
+    "grunt-contrib-imagemin": "^0.7.2",
+    "grunt-contrib-sass": "^1.0.0",
+    "grunt-contrib-uglify": "^0.5.1",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-svgstore": "^1.0.0",
+    "imagemin-gifsicle": "^5.1.0",
+    "imagemin-optipng": "^5.2.0",
+    "imagemin-pngquant": "^5.0.0",
+    "lodash": "^3.10.1",
+    "match-file-utility": "^3.4.0"
+  }
+}
