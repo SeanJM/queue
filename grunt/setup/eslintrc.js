@@ -6,6 +6,6 @@ try {
 } catch (e) {
   // Create a jshintrc by default
   fs.writeFileSync(
-    '.eslintrc', fs.readFileSync(path.resolve('grunt/boilerplat/.eslintrc'), 'utf8')
+    '.eslintrc', fs.readFileSync(path.resolve('grunt/boilerplate/.eslintrc'), 'utf8')
   );
 }
