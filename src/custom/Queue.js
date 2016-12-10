@@ -8,21 +8,8 @@ function Queue(instance, methods) {
   this.mirror = new Mirror(),
   this.instance = instance;
 
-  Mirror.prototype.wait = function (miliseconds) {
-    setTimeout(function () { self.next(); }, miliseconds);
-    return this;
-  };
-
-  Mirror.prototype.push = function (callback) {
-    self.list.push({
-      name : callback.name,
-      method : callback,
-      arguments : []
-    });
-
-    self.next();
-    return this;
-  };
+  Mirror.prototype.wait = wait(this);
+  Mirror.prototype.push = push(this);
 
   methods.forEach(function (method) {
     Mirror.prototype[method] = self.extend(method);
