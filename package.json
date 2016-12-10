@@ -9,7 +9,7 @@
     "sourceMap": true,
     "isSite": false,
     "useClosure": true,
-    "bundle": "bundle"
+    "bundle": "queue"
   },
   "main": "bin/bundle.min.js",
   "scripts": {
