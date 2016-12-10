@@ -14,10 +14,8 @@
 
 ## Description ([top](#table-of-contents))
 
-<!--
-  Describe to the world what you toiled over. You magnificent being.
-  (The title 'Is going to be generated')
--->
+A utility function for making an object with methods a function which can wait before executing the next method.
+
 ## Example ([top](#table-of-contents))
 
 
