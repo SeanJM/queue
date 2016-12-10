@@ -1,69 +1,75 @@
 function Queue(instance, methods) {
+  var self = this;
+
   function Mirror() {}
-  
+
   this.list = [];
   this.wait = false;
   this.mirror = new Mirror(),
   this.instance = instance;
 
-  methods.forEach(function (method) {
-    Mirror.prototype[method] = this.extend(method);
-  });
-}
+  Mirror.prototype.wait = function (miliseconds) {
+    setTimeout(function () { self.next(); }, miliseconds);
+    return this;
+  };
 
-Queue.prototype.extend = function (method) {
-  var self = this;
-
-  return function () {
-    var a = [];
-    var i = 0;
-    var n = arguments.length;
-
-    for (; i < n; i++) a.push(arguments[i]);
-
-    self._queue_.list.push({
-      method : method,
-      arguments : a
+  Mirror.prototype.push = function (callback) {
+    self.list.push({
+      name : callback.name,
+      method : callback,
+      arguments : []
     });
 
     self.next();
+    return this;
+  };
 
-    return self._queue_.mirror;
+  methods.forEach(function (method) {
+    Mirror.prototype[method] = self.extend(method);
+  });
+}
+
+Queue.prototype.extend = function (methodName) {
+  var self = this;
+
+  return function () {
+    var i = 0;
+    var n = arguments.length;
+    var $arguments = new Array(n);
+
+    for (; i < n; i++) {
+      $arguments[i] = arguments[i];
+    }
+
+    self.list.push({
+      name : methodName,
+      method : self.instance[methodName],
+      arguments : $arguments
+    });
+
+    self.next();
+    return self.mirror;
   };
 };
 
 Queue.prototype.next = function () {
-  var result;
-  var a = self._queue_[0];
-
-  function future(self, f) {
-    self._wait_ = true;
-    f(function () {
-      self._wait_ = false;
-      self._queue_.shift();
-      next(self);
-    });
-  }
+  var maybePromise;
+  var first = this.list[0];
+  var self = this;
 
   // What if the method is 'then' or 'complete' ?
-  if (!self._wait_ && a) {
-
-    result = a.instance[a.method].apply(a.instance, a.arguments);
-
-    if (result && typeof result.then === 'function') {
-      future(self, result.then);
-    } else if (result && typeof result.complete === 'function') {
-      future(self, result.complete);
+  if (!this.wait && first) {
+    maybePromise = first.method.apply(this.instance, first.arguments);
+    if (isPromise(maybePromise)) {
+      this.wait = true;
+      maybePromise.then(function () {
+        self.wait = false;
+        self.list.shift();
+        self.next();
+      });
     } else {
-      self._queue_.shift();
-
-      next(self);
+      this.list.shift();
+      this.next();
     }
   }
-};
-
-Queue.prototype.wait = function (s) {
-  setTimeout(function () {
-    next(self);
-  }, s);
 };
