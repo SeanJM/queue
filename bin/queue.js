@@ -15,21 +15,8 @@ function Queue(instance, methods) {
   this.mirror = new Mirror(),
   this.instance = instance;
 
-  Mirror.prototype.wait = function (miliseconds) {
-    setTimeout(function () { self.next(); }, miliseconds);
-    return this;
-  };
-
-  Mirror.prototype.push = function (callback) {
-    self.list.push({
-      name : callback.name,
-      method : callback,
-      arguments : []
-    });
-
-    self.next();
-    return this;
-  };
+  Mirror.prototype.wait = wait(this);
+  Mirror.prototype.push = push(this);
 
   methods.forEach(function (method) {
     Mirror.prototype[method] = self.extend(method);
@@ -95,6 +82,53 @@ function getMethodKeys(object) {
   }
 
   return methods;
+}
+
+function push(queue) {
+  return function (callback) {
+    queue.list.push({
+      name : callback.name || 'Anonymous Function',
+      method : callback,
+      arguments : []
+    });
+
+    queue.next();
+
+    return queue.mirror;
+  };
+}
+
+function wait(queue) {
+  return function (a, b) {
+    var miliseconds;
+    var callback;
+
+    if (arguments.length > 2) {
+      throw 'Invalid number of arguments (' + arguments.length + '), the \'wait\' method takes a maximum of 2 arguments, a function and a number.';
+    }
+
+    if (typeof a === 'number') {
+      miliseconds = a;
+    } else if (typeof a === 'function') {
+      callback = a;
+    }
+
+    if (typeof b === 'number') {
+      miliseconds = b;
+    } else if (typeof b === 'function') {
+      callback = b;
+    }
+
+    setTimeout(function () {
+      if (typeof callback === 'function') {
+        queue.mirror.push(callback);
+      } else {
+        queue.next();
+      }
+    }, miliseconds);
+
+    return queue.mirror;
+  };
 }
 
 function queue(instance) {
