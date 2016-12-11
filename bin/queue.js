@@ -8,20 +8,30 @@ function isPromise(value) {
 function Queue(instance, methods) {
   var self = this;
 
-  function Mirror() {}
+  function QueueProxy() {}
 
   this.list = [];
-  this.wait = false;
-  this.mirror = new Mirror(),
+  this.isWaiting = false;
+  this.mirror = new QueueProxy(),
   this.instance = instance;
 
-  Mirror.prototype.wait = wait(this);
-  Mirror.prototype.push = push(this);
-
-  methods.forEach(function (method) {
-    Mirror.prototype[method] = self.extend(method);
+  methods.forEach(function (methodName) {
+    QueueProxy.prototype[methodName] = self.extend(methodName);
   });
 }
+
+Queue.prototype.wait = function (ms) {
+  if (arguments.length > 1) {
+    throw 'Invalid number of arguments (' + arguments.length + '), the \'wait\' method takes a single argument: time in miliseconds.';
+  }
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+};
+
+Queue.prototype.push = function (callback) {
+  return callback();
+};
 
 Queue.prototype.extend = function (methodName) {
   var self = this;
@@ -29,18 +39,23 @@ Queue.prototype.extend = function (methodName) {
   return function () {
     var i = 0;
     var n = arguments.length;
-    var $arguments = new Array(n);
+    var opt = {
+      name : methodName,
+      arguments : new Array(n),
+      self : self,
+      method : Queue.prototype[methodName]
+    };
 
     for (; i < n; i++) {
-      $arguments[i] = arguments[i];
+      opt.arguments[i] = arguments[i];
     }
 
-    self.list.push({
-      name : methodName,
-      method : self.instance[methodName],
-      arguments : $arguments
-    });
+    if (RESERVED_METHODS.indexOf(methodName) === -1) {
+      opt.self = self.instance;
+      opt.method = self.instance[methodName];
+    }
 
+    self.list.push(opt);
     self.next();
     return self.mirror;
   };
@@ -51,18 +66,17 @@ Queue.prototype.next = function () {
   var first = this.list[0];
   var self = this;
 
-  // What if the method is 'then' or 'complete' ?
-  if (!this.wait && first) {
-    maybePromise = first.method.apply(this.instance, first.arguments);
+  if (!this.isWaiting && first) {
+    this.list.shift(); // This position prevents a stack overflow
+    maybePromise = first.method.apply(first.self, first.arguments);
+
     if (isPromise(maybePromise)) {
-      this.wait = true;
+      this.isWaiting = true;
       maybePromise.then(function () {
-        self.wait = false;
-        self.list.shift();
+        self.isWaiting = false;
         self.next();
       });
     } else {
-      this.list.shift();
       this.next();
     }
   }
@@ -84,53 +98,6 @@ function getMethodKeys(object) {
   return methods;
 }
 
-function push(queue) {
-  return function (callback) {
-    queue.list.push({
-      name : callback.name || 'Anonymous Function',
-      method : callback,
-      arguments : []
-    });
-
-    queue.next();
-
-    return queue.mirror;
-  };
-}
-
-function wait(queue) {
-  return function (a, b) {
-    var miliseconds;
-    var callback;
-
-    if (arguments.length > 2) {
-      throw 'Invalid number of arguments (' + arguments.length + '), the \'wait\' method takes a maximum of 2 arguments, a function and a number.';
-    }
-
-    if (typeof a === 'number') {
-      miliseconds = a;
-    } else if (typeof a === 'function') {
-      callback = a;
-    }
-
-    if (typeof b === 'number') {
-      miliseconds = b;
-    } else if (typeof b === 'function') {
-      callback = b;
-    }
-
-    setTimeout(function () {
-      if (typeof callback === 'function') {
-        queue.mirror.push(callback);
-      } else {
-        queue.next();
-      }
-    }, miliseconds);
-
-    return queue.mirror;
-  };
-}
-
 function queue(instance) {
   var methods = getMethodKeys(instance);
   var i;
@@ -143,11 +110,14 @@ function queue(instance) {
   } else {
     i = 0;
     n = methods.length;
+
     for (; i < n; i++) {
       if (RESERVED_METHODS.indexOf(methods[i]) > -1) {
-        throw new Error('Method \"wait\" is a reserved method name.');
+        throw new Error('Method \"' + RESERVED_METHODS[RESERVED_METHODS.indexOf(methods[i])] + '\" is a reserved method name.');
       }
     }
+
+    [].push.apply(methods, RESERVED_METHODS);
   }
 
   return new Queue(instance, methods).mirror;

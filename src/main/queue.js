@@ -10,11 +10,14 @@ function queue(instance) {
   } else {
     i = 0;
     n = methods.length;
+
     for (; i < n; i++) {
       if (RESERVED_METHODS.indexOf(methods[i]) > -1) {
-        throw new Error('Method \"wait\" is a reserved method name.');
+        throw new Error('Method \"' + RESERVED_METHODS[RESERVED_METHODS.indexOf(methods[i])] + '\" is a reserved method name.');
       }
     }
+
+    [].push.apply(methods, RESERVED_METHODS);
   }
 
   return new Queue(instance, methods).mirror;

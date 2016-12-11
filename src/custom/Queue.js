@@ -1,20 +1,30 @@
 function Queue(instance, methods) {
   var self = this;
 
-  function Mirror() {}
+  function QueueProxy() {}
 
   this.list = [];
-  this.wait = false;
-  this.mirror = new Mirror(),
+  this.isWaiting = false;
+  this.mirror = new QueueProxy(),
   this.instance = instance;
 
-  Mirror.prototype.wait = wait(this);
-  Mirror.prototype.push = push(this);
-
-  methods.forEach(function (method) {
-    Mirror.prototype[method] = self.extend(method);
+  methods.forEach(function (methodName) {
+    QueueProxy.prototype[methodName] = self.extend(methodName);
   });
 }
+
+Queue.prototype.wait = function (ms) {
+  if (arguments.length > 1) {
+    throw 'Invalid number of arguments (' + arguments.length + '), the \'wait\' method takes a single argument: time in miliseconds.';
+  }
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+};
+
+Queue.prototype.push = function (callback) {
+  return callback();
+};
 
 Queue.prototype.extend = function (methodName) {
   var self = this;
@@ -22,18 +32,23 @@ Queue.prototype.extend = function (methodName) {
   return function () {
     var i = 0;
     var n = arguments.length;
-    var $arguments = new Array(n);
+    var opt = {
+      name : methodName,
+      arguments : new Array(n),
+      self : self,
+      method : Queue.prototype[methodName]
+    };
 
     for (; i < n; i++) {
-      $arguments[i] = arguments[i];
+      opt.arguments[i] = arguments[i];
     }
 
-    self.list.push({
-      name : methodName,
-      method : self.instance[methodName],
-      arguments : $arguments
-    });
+    if (RESERVED_METHODS.indexOf(methodName) === -1) {
+      opt.self = self.instance;
+      opt.method = self.instance[methodName];
+    }
 
+    self.list.push(opt);
     self.next();
     return self.mirror;
   };
@@ -44,18 +59,17 @@ Queue.prototype.next = function () {
   var first = this.list[0];
   var self = this;
 
-  // What if the method is 'then' or 'complete' ?
-  if (!this.wait && first) {
-    maybePromise = first.method.apply(this.instance, first.arguments);
+  if (!this.isWaiting && first) {
+    this.list.shift(); // This position prevents a stack overflow
+    maybePromise = first.method.apply(first.self, first.arguments);
+
     if (isPromise(maybePromise)) {
-      this.wait = true;
+      this.isWaiting = true;
       maybePromise.then(function () {
-        self.wait = false;
-        self.list.shift();
+        self.isWaiting = false;
         self.next();
       });
     } else {
-      this.list.shift();
       this.next();
     }
   }
